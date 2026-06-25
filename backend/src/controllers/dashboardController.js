@@ -1,6 +1,17 @@
 import { logger } from "../config/index.js";
 import * as dashboardService from "../services/dashboardService.js";
 
+export async function getExpiringSubscriptions(req, res, next) {
+  try {
+    const rows = await dashboardService.getExpiringSubscriptions(req.user.tenantId);
+    logger.info({ count: rows.length, tenantId: req.user.tenantId }, "getExpiringSubscriptions completed");
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    logger.error({ err, tenantId: req.user.tenantId }, "getExpiringSubscriptions failed");
+    next(err);
+  }
+}
+
 export async function getAdminDashboard(req, res, next) {
   try {
     const data = await dashboardService.getAdminDashboard(req.user.tenantId);

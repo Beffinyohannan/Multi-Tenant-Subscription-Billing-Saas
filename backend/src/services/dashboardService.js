@@ -1,5 +1,23 @@
 import sequelize from "../models/index.js";
 
+export async function getExpiringSubscriptions(tenantId) {
+  const rows = await sequelize.query(
+    `SELECT u.name AS user_name, p.name AS plan_name, s.id AS id, p.name AS subscription_name,
+            FLOOR(EXTRACT(EPOCH FROM (s.end_date - NOW())) / 86400)::int AS days_remaining
+     FROM subscriptions s
+     JOIN users u ON u.id = s.user_id
+     JOIN plans p ON p.id = s.plan_id
+     WHERE s.tenant_id = $1
+       AND s.status = 'ACTIVE'
+       AND s.end_date IS NOT NULL
+       AND s.end_date BETWEEN NOW() AND NOW() + INTERVAL '7 days'
+     ORDER BY s.end_date ASC`,
+    { bind: [tenantId], type: sequelize.QueryTypes.SELECT }
+  );
+
+  return rows;
+}
+
 export async function getAdminDashboard(tenantId) {
   const [[usersResult], [activeResult], [expiredResult], [revenueResult], distResult] =
     await Promise.all([

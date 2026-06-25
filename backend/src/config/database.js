@@ -8,7 +8,7 @@ const sequelize = env.DATABASE_URL
       dialectOptions: {
         ssl: { rejectUnauthorized: false },
       },
-      pool: { max: 20, idle: 30000, acquire: 5000 },
+      pool: { max: 20, idle: 30000, acquire: 30000 },
       logging: (sql) => {
         if (env.NODE_ENV === "development") {
           logger.debug({ query: sql }, "sequelize query");
@@ -19,7 +19,7 @@ const sequelize = env.DATABASE_URL
       host: env.DB_HOST,
       port: env.DB_PORT,
       dialect: "postgres",
-      pool: { max: 20, idle: 30000, acquire: 5000 },
+      pool: { max: 20, idle: 30000, acquire: 30000 },
       logging: (sql) => {
         if (env.NODE_ENV === "development") {
           logger.debug({ query: sql }, "sequelize query");

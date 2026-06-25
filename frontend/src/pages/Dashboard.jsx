@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAdminDashboard } from '../api/dashboard';
+import { getAdminDashboard, getExpiringSubscriptions } from '../api/dashboard';
 import { useAuthStore } from '../store';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
@@ -23,12 +23,21 @@ export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expiring, setExpiring] = useState([]);
+  const [expiringLoading, setExpiringLoading] = useState(true);
 
   useEffect(() => {
     getAdminDashboard()
       .then((res) => setData(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    getExpiringSubscriptions()
+      .then((res) => setExpiring(res.data))
+      .catch(() => {})
+      .finally(() => setExpiringLoading(false));
   }, []);
 
   return (
@@ -76,6 +85,49 @@ export default function Dashboard() {
               </ResponsiveContainer>
             ) : (
               <p className="py-8 text-center text-sm text-gray-400">No subscriptions yet.</p>
+            )}
+          </div>
+
+          <div className="overflow-hidden rounded-xl bg-white shadow">
+            <div className="border-b border-gray-100 px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-900">Subscriptions Expiring Soon</h2>
+              <p className="text-sm text-gray-500">Active subscriptions expiring within the next 7 days</p>
+            </div>
+            {expiringLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+              </div>
+            ) : expiring.length > 0 ? (
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b bg-gray-50 text-gray-500">
+                    <th className="px-6 py-3 font-medium">User Name</th>
+                    <th className="px-6 py-3 font-medium">Plan Name</th>
+                    <th className="px-6 py-3 font-medium">Subscription</th>
+                    <th className="px-6 py-3 font-medium">Days Remaining</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {expiring.map((s) => (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-medium text-gray-900">{s.user_name}</td>
+                      <td className="px-6 py-4 text-gray-700">{s.plan_name}</td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {s.subscription_name}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                          {s.days_remaining} {s.days_remaining === 1 ? 'day' : 'days'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="px-6 py-8 text-center text-sm text-gray-400">
+                No subscriptions expiring soon.
+              </div>
             )}
           </div>
         </div>
