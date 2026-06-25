@@ -23,9 +23,14 @@ export async function createPlan(req, res, next) {
 
 export async function getPlans(req, res, next) {
   try {
-    const plans = await planService.findAllPlans(req.user.tenantId);
-    logger.info({ count: plans.length, tenantId: req.user.tenantId }, "getPlans completed");
-    res.json({ success: true, data: plans });
+    const { page, limit } = req.query;
+    const { rows, count } = await planService.findAllPlans(req.user.tenantId, { page, limit });
+    logger.info({ count: rows.length, total: count, tenantId: req.user.tenantId }, "getPlans completed");
+    res.json({
+      success: true,
+      data: rows,
+      pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) },
+    });
   } catch (err) {
     logger.error({ err, tenantId: req.user.tenantId }, "getPlans failed");
     next(err);

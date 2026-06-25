@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store';
 import { getUsers, deleteUser } from '../api/users';
+import Pagination from '../components/Pagination';
 
 export default function Users() {
   const user = useAuthStore((s) => s.user);
@@ -9,16 +10,25 @@ export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchUsers = () => {
+  const fetchUsers = (p = page) => {
     setLoading(true);
-    getUsers()
-      .then((res) => setUsers(res.data))
+    getUsers({ page: p, limit: 10 })
+      .then((res) => {
+        setUsers(res.data);
+        setTotalPages(res.pagination.totalPages);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchUsers, []);
+  useEffect(() => { fetchUsers(page); }, [page]);
+
+  const handlePageChange = (p) => {
+    setPage(p);
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this user? This cannot be undone.')) return;
@@ -96,6 +106,7 @@ export default function Users() {
               ))}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
       )}
     </>

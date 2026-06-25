@@ -1,7 +1,7 @@
 import api from './client';
 
-export async function getPlans() {
-  const res = await api.get('/plans');
+export async function getPlans(params = {}) {
+  const res = await api.get('/plans', { params });
   return res.data;
 }
 

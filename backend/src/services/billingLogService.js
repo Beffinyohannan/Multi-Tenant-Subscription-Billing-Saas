@@ -33,8 +33,15 @@ export async function createLog(tenantId, { subscriptionId, amount, status, bill
   }
 }
 
-export async function findLogsByTenant(tenantId) {
-  return sequelize.query(
+export async function findLogsByTenant(tenantId, { page = 1, limit = 10 } = {}) {
+  const offset = (page - 1) * limit;
+
+  const countResult = await sequelize.query(
+    `SELECT COUNT(*)::int AS count FROM billing_logs WHERE tenant_id = $1`,
+    { bind: [tenantId], type: sequelize.QueryTypes.SELECT, plain: true }
+  );
+
+  const rows = await sequelize.query(
     `SELECT l.*, u.name AS user_name, u.email AS user_email,
             p.name AS plan_name, s.status AS subscription_status
      FROM billing_logs l
@@ -42,9 +49,12 @@ export async function findLogsByTenant(tenantId) {
      JOIN plans p ON p.id = l.plan_id
      JOIN subscriptions s ON s.id = l.subscription_id
      WHERE l.tenant_id = $1
-     ORDER BY l.created_at DESC`,
-    { bind: [tenantId], type: sequelize.QueryTypes.SELECT }
+     ORDER BY l.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    { bind: [tenantId, limit, offset], type: sequelize.QueryTypes.SELECT }
   );
+
+  return { rows, count: countResult.count };
 }
 
 export async function findLogByTenant(tenantId, id) {

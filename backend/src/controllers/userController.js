@@ -24,9 +24,14 @@ export async function createUser(req, res, next) {
 
 export async function getUsers(req, res, next) {
   try {
-    const users = await userService.findUsersByTenant(req.user.tenantId);
-    logger.info({ count: users.length, tenantId: req.user.tenantId }, "getUsers completed");
-    res.json({ success: true, data: users });
+    const { page, limit } = req.query;
+    const { rows, count } = await userService.findUsersByTenant(req.user.tenantId, { page, limit });
+    logger.info({ count: rows.length, total: count, tenantId: req.user.tenantId }, "getUsers completed");
+    res.json({
+      success: true,
+      data: rows,
+      pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) },
+    });
   } catch (err) {
     logger.error({ err, tenantId: req.user.tenantId }, "getUsers failed");
     next(err);

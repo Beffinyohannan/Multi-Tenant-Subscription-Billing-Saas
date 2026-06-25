@@ -1,22 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getPlans, deletePlan } from '../api/plans';
+import Pagination from '../components/Pagination';
 
 export default function Plans() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchPlans = () => {
+  const fetchPlans = (p = page) => {
     setLoading(true);
-    getPlans()
-      .then((res) => setPlans(res.data))
+    getPlans({ page: p, limit: 10 })
+      .then((res) => {
+        setPlans(res.data);
+        setTotalPages(res.pagination.totalPages);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchPlans, []);
+  useEffect(() => { fetchPlans(page); }, [page]);
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this plan? This cannot be undone.')) return;
@@ -88,6 +94,7 @@ export default function Plans() {
               ))}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
     </>

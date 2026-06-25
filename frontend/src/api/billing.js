@@ -5,7 +5,7 @@ export async function runBilling() {
   return res.data;
 }
 
-export async function getBillingLogs() {
-  const res = await api.get('/billing-logs');
+export async function getBillingLogs(params = {}) {
+  const res = await api.get('/billing-logs', { params });
   return res.data;
 }

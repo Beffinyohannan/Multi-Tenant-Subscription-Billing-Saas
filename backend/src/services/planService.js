@@ -17,14 +17,24 @@ export async function createPlan({ tenantId, name, price, billingInterval }) {
   return plan;
 }
 
-export async function findAllPlans(tenantId) {
-  return sequelize.query(
+export async function findAllPlans(tenantId, { page = 1, limit = 10 } = {}) {
+  const offset = (page - 1) * limit;
+
+  const countResult = await sequelize.query(
+    `SELECT COUNT(*)::int AS count FROM plans WHERE tenant_id = $1`,
+    { bind: [tenantId], type: sequelize.QueryTypes.SELECT, plain: true }
+  );
+
+  const rows = await sequelize.query(
     `SELECT id, tenant_id, name, price, billing_interval, created_at, updated_at
      FROM plans
      WHERE tenant_id = $1
-     ORDER BY created_at DESC`,
-    { bind: [tenantId], type: sequelize.QueryTypes.SELECT }
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    { bind: [tenantId, limit, offset], type: sequelize.QueryTypes.SELECT }
   );
+
+  return { rows, count: countResult.count };
 }
 
 export async function findPlanById(id, tenantId) {

@@ -1,7 +1,7 @@
 import api from './client';
 
-export async function getUsers() {
-  const res = await api.get('/users');
+export async function getUsers(params = {}) {
+  const res = await api.get('/users', { params });
   return res.data;
 }
 

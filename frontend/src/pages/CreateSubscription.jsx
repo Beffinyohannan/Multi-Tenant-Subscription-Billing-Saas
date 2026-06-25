@@ -15,7 +15,7 @@ export default function CreateSubscription() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([getUsers(), getPlans()])
+    Promise.all([getUsers({ page: 1, limit: 1000 }), getPlans({ page: 1, limit: 1000 })])
       .then(([u, p]) => {
         setUsers(u.data);
         setPlans(p.data);

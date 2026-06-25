@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getSubscriptions } from '../api/subscriptions';
+import Pagination from '../components/Pagination';
 
 const STATUS_STYLES = {
   ACTIVE: 'bg-green-100 text-green-700',
@@ -12,14 +13,19 @@ export default function Subscriptions() {
   const navigate = useNavigate();
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     setLoading(true);
-    getSubscriptions()
-      .then((res) => setSubscriptions(res.data))
+    getSubscriptions({ page, limit: 10 })
+      .then((res) => {
+        setSubscriptions(res.data);
+        setTotalPages(res.pagination.totalPages);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   return (
     <>
@@ -82,6 +88,7 @@ export default function Subscriptions() {
               ))}
             </tbody>
           </table>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
       )}
     </>

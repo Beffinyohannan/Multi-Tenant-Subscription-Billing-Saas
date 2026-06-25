@@ -14,9 +14,14 @@ export async function createTenant(req, res, next) {
 
 export async function getTenants(req, res, next) {
   try {
-    const tenants = await tenantService.findAllTenants();
-    logger.info({ count: tenants.length }, "getTenants completed");
-    res.json({ success: true, data: tenants });
+    const { page, limit } = req.query;
+    const { rows, count } = await tenantService.findAllTenants({ page, limit });
+    logger.info({ count: rows.length, total: count }, "getTenants completed");
+    res.json({
+      success: true,
+      data: rows,
+      pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) },
+    });
   } catch (err) {
     logger.error({ err }, "getTenants failed");
     next(err);

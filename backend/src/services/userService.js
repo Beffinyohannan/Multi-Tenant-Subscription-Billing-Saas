@@ -24,13 +24,17 @@ export async function createUser(tenantId, { name, email, password, role }) {
   });
 }
 
-export async function findUsersByTenant(tenantId) {
-  return User.findAll({
+export async function findUsersByTenant(tenantId, { page = 1, limit = 10 } = {}) {
+  const offset = (page - 1) * limit;
+  const { count, rows } = await User.findAndCountAll({
     attributes: ["id", "tenant_id", "name", "email", "role", "created_at"],
     where: { tenant_id: tenantId },
     order: [["created_at", "DESC"]],
+    limit,
+    offset,
     raw: true,
   });
+  return { rows, count };
 }
 
 export async function findUserByTenant(tenantId, userId) {

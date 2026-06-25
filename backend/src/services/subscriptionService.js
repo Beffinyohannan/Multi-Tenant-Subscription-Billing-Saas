@@ -48,17 +48,27 @@ export async function assignPlan(tenantId, { userId, planId }) {
   return result;
 }
 
-export async function findSubscriptionsByTenant(tenantId) {
-  return sequelize.query(
+export async function findSubscriptionsByTenant(tenantId, { page = 1, limit = 10 } = {}) {
+  const offset = (page - 1) * limit;
+
+  const countResult = await sequelize.query(
+    `SELECT COUNT(*)::int AS count FROM subscriptions WHERE tenant_id = $1`,
+    { bind: [tenantId], type: sequelize.QueryTypes.SELECT, plain: true }
+  );
+
+  const rows = await sequelize.query(
     `SELECT s.*, u.name AS user_name, u.email AS user_email,
             p.name AS plan_name, p.price, p.billing_interval
      FROM subscriptions s
      JOIN users u ON u.id = s.user_id
      JOIN plans p ON p.id = s.plan_id
      WHERE s.tenant_id = $1
-     ORDER BY s.created_at DESC`,
-    { bind: [tenantId], type: sequelize.QueryTypes.SELECT }
+     ORDER BY s.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    { bind: [tenantId, limit, offset], type: sequelize.QueryTypes.SELECT }
   );
+
+  return { rows, count: countResult.count };
 }
 
 export async function findSubscriptionByTenant(tenantId, id) {

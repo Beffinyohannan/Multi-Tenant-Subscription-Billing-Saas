@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { runBilling, getBillingLogs } from '../api/billing';
+import Pagination from '../components/Pagination';
 
 const STATUS_STYLES = {
   SUCCESS: 'bg-green-100 text-green-700',
@@ -12,16 +13,21 @@ export default function Billing() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchLogs = () => {
+  const fetchLogs = (p = page) => {
     setLoading(true);
-    getBillingLogs()
-      .then((res) => setLogs(res.data))
+    getBillingLogs({ page: p, limit: 10 })
+      .then((res) => {
+        setLogs(res.data);
+        setTotalPages(res.pagination.totalPages);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchLogs, []);
+  useEffect(() => { fetchLogs(page); }, [page]);
 
   const handleRunBilling = async () => {
     setRunning(true);
@@ -95,41 +101,44 @@ export default function Billing() {
         ) : logs.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-500">No billing logs yet. Run billing to generate them.</div>
         ) : (
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50 text-gray-500">
-                <th className="px-6 py-3 font-medium">User</th>
-                <th className="px-6 py-3 font-medium">Plan</th>
-                <th className="px-6 py-3 font-medium">Amount</th>
-                <th className="px-6 py-3 font-medium">Status</th>
-                <th className="px-6 py-3 font-medium">Period</th>
-                <th className="px-6 py-3 font-medium">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{log.user_name}</div>
-                    <div className="text-gray-500">{log.user_email}</div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-900">{log.plan_name}</td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(log.amount)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[log.status] || 'bg-gray-100 text-gray-700'}`}>
-                      {log.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{log.billing_period}</td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {new Date(log.created_at).toLocaleDateString()}
-                  </td>
+          <>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50 text-gray-500">
+                  <th className="px-6 py-3 font-medium">User</th>
+                  <th className="px-6 py-3 font-medium">Plan</th>
+                  <th className="px-6 py-3 font-medium">Amount</th>
+                  <th className="px-6 py-3 font-medium">Status</th>
+                  <th className="px-6 py-3 font-medium">Period</th>
+                  <th className="px-6 py-3 font-medium">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y">
+                {logs.map((log) => (
+                  <tr key={log.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">{log.user_name}</div>
+                      <div className="text-gray-500">{log.user_email}</div>
+                    </td>
+                    <td className="px-6 py-4 text-gray-900">{log.plan_name}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(log.amount)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[log.status] || 'bg-gray-100 text-gray-700'}`}>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">{log.billing_period}</td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {new Date(log.created_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
         )}
       </div>
     </>

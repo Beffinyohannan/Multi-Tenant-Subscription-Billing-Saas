@@ -23,9 +23,14 @@ export async function assignPlan(req, res, next) {
 
 export async function getSubscriptions(req, res, next) {
   try {
-    const subscriptions = await subscriptionService.findSubscriptionsByTenant(req.user.tenantId);
-    logger.info({ count: subscriptions.length, tenantId: req.user.tenantId }, "getSubscriptions completed");
-    res.json({ success: true, data: subscriptions });
+    const { page, limit } = req.query;
+    const { rows, count } = await subscriptionService.findSubscriptionsByTenant(req.user.tenantId, { page, limit });
+    logger.info({ count: rows.length, total: count, tenantId: req.user.tenantId }, "getSubscriptions completed");
+    res.json({
+      success: true,
+      data: rows,
+      pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) },
+    });
   } catch (err) {
     logger.error({ err, tenantId: req.user.tenantId }, "getSubscriptions failed");
     next(err);

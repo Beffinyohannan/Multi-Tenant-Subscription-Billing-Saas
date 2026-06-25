@@ -1,7 +1,7 @@
 import api from './client';
 
-export async function getSubscriptions() {
-  const res = await api.get('/subscriptions');
+export async function getSubscriptions(params = {}) {
+  const res = await api.get('/subscriptions', { params });
   return res.data;
 }
 

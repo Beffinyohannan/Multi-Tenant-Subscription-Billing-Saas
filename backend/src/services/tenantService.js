@@ -11,12 +11,16 @@ export async function createTenant({ name, slug }) {
   return Tenant.findByPk(tenant.id, { raw: true });
 }
 
-export async function findAllTenants() {
-  return Tenant.findAll({
+export async function findAllTenants({ page = 1, limit = 10 } = {}) {
+  const offset = (page - 1) * limit;
+  const { count, rows } = await Tenant.findAndCountAll({
     attributes: ["id", "name", "slug", "phone", "created_at", "updated_at"],
     order: [["created_at", "DESC"]],
+    limit,
+    offset,
     raw: true,
   });
+  return { rows, count };
 }
 
 export async function findTenantById(id) {
