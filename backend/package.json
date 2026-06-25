@@ -1,0 +1,31 @@
+{
+  "name": "subscription-billing-api",
+  "version": "1.0.0",
+  "description": "Multi-tenant subscription billing SaaS API",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "db:migrate": "node scripts/migrate.js",
+    "db:create": "node scripts/create-db.js",
+    "db:seed": "node scripts/seed.js",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "express-rate-limit": "^8.5.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0",
+    "winston": "^3.17.0",
+    "sequelize": "^6.37.8",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.16.0"
+  }
+}
